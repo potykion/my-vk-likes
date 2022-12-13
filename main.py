@@ -1,16 +1,34 @@
-# This is a sample Python script.
+import time
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from helium import *
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+from src.models import PhotoLink, LikedImage, LikePages
 
 
-# Press the green button in the gutter to run the script.
+def main():
+    start_firefox('vk.com')
+
+    go_to(LikePages.images(vk_id='16231309'))
+
+    # todo save/load links to disk
+    links = set()
+    while True:
+        new_links = set(PhotoLink.find_all())
+        if new_links - links:
+            links |= new_links
+            print(f'Links so far: {len(links)}')
+            scroll_down(1000)
+            time.sleep(3)
+        else:
+            break
+
+    # todo filter existing images
+    liked_images = LikedImage.from_links(links)
+    for index, img in enumerate(liked_images):
+        print(f'Downloading images: {index + 1} / {len(liked_images)}')
+        img.find_src()
+        img.download()
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    main()
